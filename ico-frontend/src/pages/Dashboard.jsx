@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getTokenContract, getVestingContract, formatTokenAmount } from '../web3/contracts';
 import Loader from '../components/Loader';
 
@@ -139,8 +140,8 @@ const Dashboard = ({ walletAddress }) => {
       <div className="card">
         <h2 className="text-xl font-semibold text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <a
-            href="/buy"
+          <Link
+            to="/buy"
             className="flex items-center space-x-3 p-4 bg-dark-900/50 rounded-lg border border-dark-700 hover:border-primary-500/50 transition-colors"
           >
             <div className="w-10 h-10 bg-primary-600/20 rounded-lg flex items-center justify-center">
@@ -152,10 +153,10 @@ const Dashboard = ({ walletAddress }) => {
               <div className="text-white font-medium">Buy Tokens</div>
               <div className="text-dark-400 text-sm">Participate in ICO</div>
             </div>
-          </a>
+          </Link>
 
-          <a
-            href="/vesting"
+          <Link
+            to="/vesting"
             className="flex items-center space-x-3 p-4 bg-dark-900/50 rounded-lg border border-dark-700 hover:border-primary-500/50 transition-colors"
           >
             <div className="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
@@ -167,10 +168,10 @@ const Dashboard = ({ walletAddress }) => {
               <div className="text-white font-medium">View Vesting</div>
               <div className="text-dark-400 text-sm">Check vesting schedule</div>
             </div>
-          </a>
+          </Link>
 
-          <a
-            href="/history"
+          <Link
+            to="/history"
             className="flex items-center space-x-3 p-4 bg-dark-900/50 rounded-lg border border-dark-700 hover:border-primary-500/50 transition-colors"
           >
             <div className="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center">
@@ -182,10 +183,10 @@ const Dashboard = ({ walletAddress }) => {
               <div className="text-white font-medium">History</div>
               <div className="text-dark-400 text-sm">View transactions</div>
             </div>
-          </a>
+          </Link>
 
-          <a
-            href="/admin"
+          <Link
+            to="/admin"
             className="flex items-center space-x-3 p-4 bg-dark-900/50 rounded-lg border border-dark-700 hover:border-primary-500/50 transition-colors"
           >
             <div className="w-10 h-10 bg-orange-600/20 rounded-lg flex items-center justify-center">
@@ -198,7 +199,7 @@ const Dashboard = ({ walletAddress }) => {
               <div className="text-white font-medium">Admin</div>
               <div className="text-dark-400 text-sm">View statistics</div>
             </div>
-          </a>
+          </Link>
         </div>
       </div>
 

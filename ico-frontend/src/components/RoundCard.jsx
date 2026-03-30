@@ -1,12 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatTokenAmount, formatETH } from '../web3/contracts';
 import { ROUND_NAMES, ROUND_COLORS } from '../constants/rounds';
 
-const RoundCard = ({ round, roundIndex, onBuy, isLoading }) => {
+const RoundCard = ({ round, roundIndex, onBuy, isLoading, allRounds }) => {
   const [ethAmount, setEthAmount] = useState('');
   const [error, setError] = useState('');
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockReason, setLockReason] = useState('');
+
+  useEffect(() => {
+    checkRoundAccess();
+  }, [roundIndex, allRounds]);
+
+  const checkRoundAccess = () => {
+    // Round 0 is always available
+    if (roundIndex === 0) {
+      setIsLocked(false);
+      setLockReason('');
+      return;
+    }
+
+    // Check if previous round is sold out
+    if (allRounds && allRounds.length > roundIndex) {
+      const previousRound = allRounds[roundIndex - 1];
+      // Use BigInt for precise comparison to avoid floating-point precision issues
+      const tokensLeft = BigInt(previousRound.tokensLeft || 0);
+      
+      if (tokensLeft > 0n) {
+        setIsLocked(true);
+        setLockReason(`Next round will unlock after previous round is fully sold out.`);
+      } else {
+        setIsLocked(false);
+        setLockReason('');
+      }
+    }
+  };
 
   const handleBuy = () => {
+    if (isLocked) {
+      setError('This round is locked. Previous round must be sold out first.');
+      return;
+    }
+
     const amount = parseFloat(ethAmount);
     if (isNaN(amount) || amount <= 0 || amount > 1000) {
       setError('Please enter a valid ETH amount (0-1000)');
@@ -83,6 +118,18 @@ const RoundCard = ({ round, roundIndex, onBuy, isLoading }) => {
         </div>
       </div>
 
+      {/* Lock Message */}
+      {isLocked && (
+        <div className="mb-4 bg-yellow-900/20 border border-yellow-800 rounded-lg p-3">
+          <div className="flex items-center space-x-2">
+            <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span className="text-yellow-400 text-sm">{lockReason}</span>
+          </div>
+        </div>
+      )}
+
       {/* Buy Section */}
       <div className="space-y-4">
         <div>
@@ -95,7 +142,7 @@ const RoundCard = ({ round, roundIndex, onBuy, isLoading }) => {
             value={ethAmount}
             onChange={(e) => setEthAmount(e.target.value)}
             className="input"
-            disabled={isLoading}
+            disabled={isLoading || isLocked}
           />
           {error && (
             <p className="text-red-400 text-sm mt-1">{error}</p>
@@ -115,7 +162,7 @@ const RoundCard = ({ round, roundIndex, onBuy, isLoading }) => {
 
         <button
           onClick={handleBuy}
-          disabled={isLoading || !ethAmount || parseFloat(ethAmount) <= 0}
+          disabled={isLoading || !ethAmount || parseFloat(ethAmount) <= 0 || isLocked}
           className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
           {isLoading ? (

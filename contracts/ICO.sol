@@ -123,7 +123,7 @@ contract ICO is Ownable, Pausable, ReentrancyGuard {
         );
     }
 
-    function getETHPrice(uint256 ethAmount) external view returns (uint256) {
+    function getETHPrice(uint256 ethAmount) external pure returns (uint256) {
         return (ethAmount * ETH_USD_RATE) / 10**18;
     }
 

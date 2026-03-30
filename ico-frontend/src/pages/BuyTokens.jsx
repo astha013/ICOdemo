@@ -152,6 +152,7 @@ const BuyTokens = ({ walletAddress }) => {
             roundIndex={index}
             onBuy={handleBuy}
             isLoading={buyingRound === index}
+            allRounds={rounds}
           />
         ))}
       </div>

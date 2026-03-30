@@ -1,4 +1,4 @@
-import hre from "hardhat";
+const hre = require("hardhat");
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
@@ -38,19 +38,32 @@ async function main() {
 
   // Set ICO and Distributor addresses in Vesting
   console.log("\nSetting ICO and Distributor in Vesting...");
-  // Verify deployer is owner of Vesting contract
   const vestingOwner = await vesting.owner();
   if (vestingOwner !== deployer.address) {
     throw new Error(`Deployer ${deployer.address} is not owner of Vesting contract. Owner is ${vestingOwner}`);
   }
-  await vesting.setICO(icoAddress);
-  await vesting.setDistributor(distributorAddress);
+
+  const setICOTx = await vesting.setICO(icoAddress);
+  const setICOReceipt = await setICOTx.wait();
+  if (setICOReceipt.status !== 1) {
+    throw new Error("setICO transaction failed");
+  }
+
+  const setDistributorTx = await vesting.setDistributor(distributorAddress);
+  const setDistributorReceipt = await setDistributorTx.wait();
+  if (setDistributorReceipt.status !== 1) {
+    throw new Error("setDistributor transaction failed");
+  }
   console.log("ICO and Distributor set in Vesting");
 
-  // Transfer all tokens from Token to Vesting
+  // Transfer all tokens to Vesting
   console.log("\nTransferring all tokens to Vesting...");
   const totalSupply = await token.totalSupply();
-  await token.transfer(vestingAddress, totalSupply);
+  const transferTx = await token.transfer(vestingAddress, totalSupply);
+  const transferReceipt = await transferTx.wait();
+  if (transferReceipt.status !== 1) {
+    throw new Error("Token transfer transaction failed");
+  }
   console.log("Transferred", hre.ethers.formatEther(totalSupply), "tokens to Vesting");
 
   console.log("\n=== Deployment Complete ===");
@@ -60,9 +73,7 @@ async function main() {
   console.log("Distributor:", distributorAddress);
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
