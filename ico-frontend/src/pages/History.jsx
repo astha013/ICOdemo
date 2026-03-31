@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getPurchases, getClaims } from '../api/axios';
 import Loader from '../components/Loader';
 import { shortenTxHash } from '../utils/address';
@@ -98,6 +99,18 @@ const History = ({ walletAddress }) => {
       {/* Content */}
       {activeTab === 'purchases' && (
         <div className="card">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-white">Purchases</h2>
+            <button
+              onClick={fetchHistory}
+              className="btn-secondary flex items-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Refresh</span>
+            </button>
+          </div>
           {purchases.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-dark-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -109,9 +122,9 @@ const History = ({ walletAddress }) => {
               <p className="text-dark-400">
                 You haven't made any token purchases yet.
               </p>
-              <a href="/buy" className="btn-primary inline-block mt-4">
+              <Link to="/buy" className="btn-primary inline-block mt-4">
                 Buy Tokens
-              </a>
+              </Link>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -159,6 +172,18 @@ const History = ({ walletAddress }) => {
 
       {activeTab === 'claims' && (
         <div className="card">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-white">Claims</h2>
+            <button
+              onClick={fetchHistory}
+              className="btn-secondary flex items-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Refresh</span>
+            </button>
+          </div>
           {claims.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-dark-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -170,9 +195,9 @@ const History = ({ walletAddress }) => {
               <p className="text-dark-400">
                 You haven't claimed any tokens yet.
               </p>
-              <a href="/vesting" className="btn-primary inline-block mt-4">
+              <Link to="/vesting" className="btn-primary inline-block mt-4">
                 View Vesting
-              </a>
+              </Link>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -211,19 +236,6 @@ const History = ({ walletAddress }) => {
           )}
         </div>
       )}
-
-      {/* Refresh Button */}
-      <div className="mt-6 flex justify-end">
-        <button
-          onClick={fetchHistory}
-          className="btn-secondary flex items-center space-x-2"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span>Refresh</span>
-        </button>
-      </div>
     </div>
   );
 };
