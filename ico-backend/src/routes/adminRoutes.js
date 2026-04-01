@@ -7,6 +7,18 @@ const { authMiddleware, adminMiddleware } = require('../middleware/authMiddlewar
 router.use(authMiddleware);
 router.use(adminMiddleware);
 
+// Root admin route - returns available endpoints
+router.get('/', (req, res) => {
+  res.json({
+    message: 'Admin API',
+    endpoints: {
+      stats: '/admin/stats',
+      purchases: '/admin/purchases',
+      users: '/admin/users',
+    },
+  });
+});
+
 // Admin routes
 router.get('/stats', adminController.getStats);
 router.get('/purchases', adminController.getPurchases);

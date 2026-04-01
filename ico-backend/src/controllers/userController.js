@@ -10,7 +10,10 @@ exports.getPurchases = async (req, res) => {
       return res.status(400).json({ error: 'Wallet address not attached to user' });
     }
 
-    const purchases = await Purchase.find({ userWallet })
+    // Normalize wallet address to lowercase for query
+    const normalizedWallet = userWallet.toLowerCase();
+
+    const purchases = await Purchase.find({ userWallet: normalizedWallet })
       .sort({ timestamp: -1 });
 
     res.json(purchases);
@@ -29,7 +32,10 @@ exports.getClaims = async (req, res) => {
       return res.status(400).json({ error: 'Wallet address not attached to user' });
     }
 
-    const claims = await Claim.find({ userWallet })
+    // Normalize wallet address to lowercase for query
+    const normalizedWallet = userWallet.toLowerCase();
+
+    const claims = await Claim.find({ userWallet: normalizedWallet })
       .sort({ timestamp: -1 });
 
     res.json(claims);

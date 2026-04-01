@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     sparse: true,
     trim: true,
+    lowercase: true, // Normalize to lowercase
   },
   role: {
     type: String,

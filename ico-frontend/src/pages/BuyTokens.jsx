@@ -59,12 +59,19 @@ const BuyTokens = ({ walletAddress }) => {
 
       const receipt = await tx.wait();
 
+      // Calculate token amount based on ETH amount and round price
+      const round = rounds[roundIndex];
+      const ethUsdRate = parseFloat(formatTokenAmount(round.ethUsdRate));
+      const priceUsd = parseFloat(formatTokenAmount(round.priceUSD));
+      const ethValue = parseFloat(ethAmount);
+      const tokenAmount = (ethValue * ethUsdRate) / priceUsd;
+
       // Save purchase to backend
       try {
         await savePurchase(
-          walletAddress,
           roundIndex,
           ethAmount,
+          tokenAmount.toFixed(2),
           receipt.hash
         );
       } catch (apiError) {

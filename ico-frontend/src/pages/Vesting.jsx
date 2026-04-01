@@ -93,7 +93,6 @@ const Vesting = ({ walletAddress }) => {
       // Save claim to backend
       try {
         await saveClaim(
-          walletAddress,
           formatTokenAmount(claimableAmount),
           receipt.hash
         );

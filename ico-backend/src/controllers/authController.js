@@ -131,16 +131,19 @@ exports.attachWallet = async (req, res) => {
       return res.status(400).json({ error: 'Please provide wallet address' });
     }
 
+    // Normalize wallet address to lowercase
+    const normalizedWallet = walletAddress.toLowerCase();
+
     // Check if wallet is already attached to another user
-    const existingUser = await User.findOne({ walletAddress });
+    const existingUser = await User.findOne({ walletAddress: normalizedWallet });
     if (existingUser && existingUser._id.toString() !== userId.toString()) {
       return res.status(400).json({ error: 'Wallet address already attached to another user' });
     }
 
-    // Update user
+    // Update user with normalized wallet address
     const user = await User.findByIdAndUpdate(
       userId,
-      { walletAddress },
+      { walletAddress: normalizedWallet },
       { new: true }
     ).select('-password');
 

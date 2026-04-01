@@ -45,19 +45,18 @@ export const saveWalletAddress = async (address) => {
   return response.data;
 };
 
-export const savePurchase = async (walletAddress, roundIndex, amount, txHash) => {
+export const savePurchase = async (round, ethAmount, tokenAmount, txHash) => {
   const response = await api.post('/purchases', {
-    walletAddress,
-    roundIndex,
-    amount,
+    round,
+    ethAmount,
+    tokenAmount,
     txHash,
   });
   return response.data;
 };
 
-export const saveClaim = async (walletAddress, amount, txHash) => {
+export const saveClaim = async (amount, txHash) => {
   const response = await api.post('/claims', {
-    walletAddress,
     amount,
     txHash,
   });
@@ -74,13 +73,21 @@ export const getClaims = async (walletAddress) => {
   return response.data;
 };
 
-export const getAdminStats = async () => {
-  const response = await api.get('/admin/stats');
+export const getAdminStats = async (walletAddress) => {
+  const response = await api.get('/admin/stats', {
+    headers: {
+      'x-wallet-address': walletAddress,
+    },
+  });
   return response.data;
 };
 
-export const getAllPurchases = async () => {
-  const response = await api.get('/admin/purchases');
+export const getAllPurchases = async (walletAddress) => {
+  const response = await api.get('/admin/purchases', {
+    headers: {
+      'x-wallet-address': walletAddress,
+    },
+  });
   return response.data;
 };
 

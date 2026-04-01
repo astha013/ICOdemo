@@ -2,8 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
+// const mongoSanitize = require('express-mongo-sanitize'); // Removed due to compatibility issues
+// const xss = require('xss-clean'); // Removed due to compatibility issues
 const helmet = require('helmet');
 const compression = require('compression');
 require('dotenv').config();
@@ -12,6 +12,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const publicRoutes = require('./routes/publicRoutes');
+const apiAdminRoutes = require('./routes/apiAdminRoutes');
 const eventListener = require('./services/eventListener');
 
 const app = express();
@@ -42,8 +43,8 @@ app.use(helmet());
 app.use(compression());
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10kb' }));
-app.use(mongoSanitize());
-app.use(xss());
+// app.use(mongoSanitize()); // Removed due to compatibility issues
+// app.use(xss()); // Removed due to compatibility issues
 app.use(limiter);
 
 // Routes
@@ -51,6 +52,7 @@ app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/admin', adminRoutes);
 app.use('/api', publicRoutes);
+app.use('/api/admin', apiAdminRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

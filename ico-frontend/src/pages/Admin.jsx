@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getAdminStats, getAllPurchases } from '../api/axios';
 import { getICOContract } from '../web3/contracts';
 import Loader from '../components/Loader';
 import { shortenAddress, shortenTxHash } from '../utils/address';
-import { ROUND_NAMES } from '../constants/rounds';
 
 const Admin = ({ walletAddress }) => {
   const [stats, setStats] = useState(null);
@@ -11,6 +11,7 @@ const Admin = ({ walletAddress }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     checkAdminAccess();
@@ -29,10 +30,18 @@ const Admin = ({ walletAddress }) => {
       } else {
         setError('Unauthorized: Admin access required');
         setIsLoading(false);
+        // Redirect to dashboard after 1 seconds
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
       }
     } catch (err) {
       setError('Failed to verify admin access');
       setIsLoading(false);
+      // Redirect to dashboard after 2 seconds
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     }
   };
 
@@ -42,8 +51,8 @@ const Admin = ({ walletAddress }) => {
 
     try {
       const [statsData, purchasesData] = await Promise.all([
-        getAdminStats(),
-        getAllPurchases(),
+        getAdminStats(walletAddress),
+        getAllPurchases(walletAddress),
       ]);
 
       setStats(statsData);
@@ -206,21 +215,21 @@ const Admin = ({ walletAddress }) => {
                     </td>
                     <td className="py-3 px-4">
                       <a
-                        href={`https://sepolia.etherscan.io/address/${purchase.walletAddress}`}
+                        href={`https://sepolia.etherscan.io/address/${purchase.userWallet}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary-400 hover:text-primary-300 font-mono text-sm"
                       >
-                        {shortenAddress(purchase.walletAddress)}
+                        {shortenAddress(purchase.userWallet)}
                       </a>
                     </td>
                     <td className="py-3 px-4">
                       <span className="px-2 py-1 bg-primary-600/20 text-primary-400 rounded text-sm">
-                        {ROUND_NAMES[purchase.roundIndex] || `Round ${purchase.roundIndex}`}
+                        {purchase.roundName || `Round ${purchase.round}`}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-white font-semibold">
-                      {purchase.amount} ETH
+                      {purchase.ethAmount} ETH
                     </td>
                     <td className="py-3 px-4">
                       <a
