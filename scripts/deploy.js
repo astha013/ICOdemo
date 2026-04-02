@@ -1,76 +1,88 @@
 const hre = require("hardhat");
+const fs = require("fs");
+const path = require("path");
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
+  const balance = await hre.ethers.provider.getBalance(deployer.address);
   console.log("Deploying contracts with account:", deployer.address);
+  console.log("Account balance:", hre.ethers.formatEther(balance), "ETH");
 
-  // Deploy Token
-  console.log("\nDeploying Token...");
-  const Token = await hre.ethers.getContractFactory("Token");
-  const token = await Token.deploy();
-  await token.waitForDeployment();
-  const tokenAddress = await token.getAddress();
-  console.log("Token deployed to:", tokenAddress);
+  // Deploy ICOStorage
+  console.log("\nDeploying ICOStorage...");
+  const ICOStorage = await hre.ethers.getContractFactory("ICOStorage");
+  const storage = await ICOStorage.deploy();
+  await storage.waitForDeployment();
+  const storageAddress = await storage.getAddress();
+  console.log("ICOStorage deployed to:", storageAddress);
 
-  // Deploy Vesting
-  console.log("\nDeploying Vesting...");
-  const Vesting = await hre.ethers.getContractFactory("Vesting");
-  const vesting = await Vesting.deploy(tokenAddress);
-  await vesting.waitForDeployment();
-  const vestingAddress = await vesting.getAddress();
-  console.log("Vesting deployed to:", vestingAddress);
+  // Deploy ICOToken
+  console.log("\nDeploying ICOToken...");
+  const ICOToken = await hre.ethers.getContractFactory("ICOToken");
+  const icoToken = await ICOToken.deploy(storageAddress);
+  await icoToken.waitForDeployment();
+  const icoTokenAddress = await icoToken.getAddress();
+  console.log("ICOToken deployed to:", icoTokenAddress);
 
-  // Deploy ICO
-  console.log("\nDeploying ICO...");
-  const ICO = await hre.ethers.getContractFactory("ICO");
-  const ico = await ICO.deploy(tokenAddress, vestingAddress);
-  await ico.waitForDeployment();
-  const icoAddress = await ico.getAddress();
-  console.log("ICO deployed to:", icoAddress);
+  // Set ICOToken address in ICOStorage
+  console.log("\nSetting ICOToken address in ICOStorage...");
+  const setICOTx = await storage.setICOContract(icoTokenAddress);
+  await setICOTx.wait();
+  console.log("ICOToken address set in ICOStorage");
 
-  // Deploy Distributor
-  console.log("\nDeploying Distributor...");
-  const Distributor = await hre.ethers.getContractFactory("Distributor");
-  const distributor = await Distributor.deploy(vestingAddress);
-  await distributor.waitForDeployment();
-  const distributorAddress = await distributor.getAddress();
-  console.log("Distributor deployed to:", distributorAddress);
-
-  // Set ICO and Distributor addresses in Vesting
-  console.log("\nSetting ICO and Distributor in Vesting...");
-  const vestingOwner = await vesting.owner();
-  if (vestingOwner !== deployer.address) {
-    throw new Error(`Deployer ${deployer.address} is not owner of Vesting contract. Owner is ${vestingOwner}`);
+  // Verify round configuration
+  console.log("\n=== Round Configuration ===");
+  for (let i = 0; i < 4; i++) {
+    const info = await icoToken.getRoundInfo(i);
+    const names = ["PreSeed", "Seed", "Strategic", "Public"];
+    console.log(`Round ${i} (${names[i]}): $${hre.ethers.formatEther(info.priceUSD)} USD, ${hre.ethers.formatEther(info.tokensAvailable)} tokens`);
   }
-
-  const setICOTx = await vesting.setICO(icoAddress);
-  const setICOReceipt = await setICOTx.wait();
-  if (setICOReceipt.status !== 1) {
-    throw new Error("setICO transaction failed");
-  }
-
-  const setDistributorTx = await vesting.setDistributor(distributorAddress);
-  const setDistributorReceipt = await setDistributorTx.wait();
-  if (setDistributorReceipt.status !== 1) {
-    throw new Error("setDistributor transaction failed");
-  }
-  console.log("ICO and Distributor set in Vesting");
-
-  // Transfer all tokens to Vesting
-  console.log("\nTransferring all tokens to Vesting...");
-  const totalSupply = await token.totalSupply();
-  const transferTx = await token.transfer(vestingAddress, totalSupply);
-  const transferReceipt = await transferTx.wait();
-  if (transferReceipt.status !== 1) {
-    throw new Error("Token transfer transaction failed");
-  }
-  console.log("Transferred", hre.ethers.formatEther(totalSupply), "tokens to Vesting");
 
   console.log("\n=== Deployment Complete ===");
-  console.log("Token:", tokenAddress);
-  console.log("Vesting:", vestingAddress);
-  console.log("ICO:", icoAddress);
-  console.log("Distributor:", distributorAddress);
+  console.log("ICOStorage:", storageAddress);
+  console.log("ICOToken:", icoTokenAddress);
+
+  // Update .env files with deployed addresses
+  const network = hre.network.name;
+  if (network === "sepolia") {
+    // Update root .env
+    updateEnvFile(path.join(__dirname, "../.env"), {
+      ICO_TOKEN_ADDRESS: icoTokenAddress,
+      ICO_STORAGE_ADDRESS: storageAddress,
+    });
+
+    // Update backend .env
+    const backendEnvPath = path.join(__dirname, "../../icobackend/.env");
+    if (fs.existsSync(backendEnvPath)) {
+      updateEnvFile(backendEnvPath, {
+        ICO_ADDRESS: icoTokenAddress,
+      });
+    }
+
+    // Update frontend .env
+    const frontendEnvPath = path.join(__dirname, "../../icofrontend/.env");
+    if (fs.existsSync(frontendEnvPath)) {
+      updateEnvFile(frontendEnvPath, {
+        VITE_ICO_TOKEN_ADDRESS: icoTokenAddress,
+        VITE_ICO_STORAGE_ADDRESS: storageAddress,
+      });
+    }
+
+    console.log("\n.env files updated with deployed addresses");
+  }
+}
+
+function updateEnvFile(filePath, updates) {
+  let content = fs.readFileSync(filePath, "utf8");
+  for (const [key, value] of Object.entries(updates)) {
+    const regex = new RegExp(`^${key}=.*$`, "m");
+    if (regex.test(content)) {
+      content = content.replace(regex, `${key}=${value}`);
+    } else {
+      content += `\n${key}=${value}`;
+    }
+  }
+  fs.writeFileSync(filePath, content);
 }
 
 main().catch((error) => {
